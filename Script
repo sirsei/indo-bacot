@@ -1,0 +1,201 @@
+--// Auto Fishing (Cast + Auto Equip Rod) + Gacha + Anti-AFK + Teleport UI Script
+-- Bisa di-drag, close, dan ada tombol Start/Stop + Gacha + Teleport + Anti-AFK Toggle
+
+local player = game:GetService("Players").LocalPlayer
+local RS = game:GetService("ReplicatedStorage")
+local vim = game:GetService("VirtualInputManager")
+
+--=== UI SETUP ===--
+local gui = Instance.new("ScreenGui")
+gui.Name = "AutoCastUI"
+gui.ResetOnSpawn = false
+gui.Parent = game.CoreGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 270, 0, 290)
+frame.Position = UDim2.new(0.4, 0, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+frame.BorderSizePixel = 0
+frame.BackgroundTransparency = 0.05
+frame.BorderMode = Enum.BorderMode.Inset
+
+local title = Instance.new("TextLabel")
+title.Text = "🎣 Auto Cast Fishing"
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.Parent = frame
+
+local startBtn = Instance.new("TextButton")
+startBtn.Text = "▶ Start"
+startBtn.Size = UDim2.new(0, 100, 0, 35)
+startBtn.Position = UDim2.new(0.1, 0, 0.18, 0)
+startBtn.BackgroundColor3 = Color3.fromRGB(60, 180, 75)
+startBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+startBtn.Font = Enum.Font.GothamBold
+startBtn.TextSize = 16
+startBtn.Parent = frame
+
+local stopBtn = Instance.new("TextButton")
+stopBtn.Text = "⏹ Stop"
+stopBtn.Size = UDim2.new(0, 100, 0, 35)
+stopBtn.Position = UDim2.new(0.55, 0, 0.18, 0)
+stopBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
+stopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+stopBtn.Font = Enum.Font.GothamBold
+stopBtn.TextSize = 16
+stopBtn.Parent = frame
+
+local gachaBtn = Instance.new("TextButton")
+gachaBtn.Text = "🎁 Gacha Skin Pancing"
+gachaBtn.Size = UDim2.new(0.8, 0, 0, 35)
+gachaBtn.Position = UDim2.new(0.1, 0, 0.36, 0)
+gachaBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+gachaBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+gachaBtn.Font = Enum.Font.GothamBold
+gachaBtn.TextSize = 15
+gachaBtn.Parent = frame
+
+local teleportBtn = Instance.new("TextButton")
+teleportBtn.Text = "📍 Teleport ke SellFish"
+teleportBtn.Size = UDim2.new(0.8, 0, 0, 35)
+teleportBtn.Position = UDim2.new(0.1, 0, 0.52, 0)
+teleportBtn.BackgroundColor3 = Color3.fromRGB(255, 150, 75)
+teleportBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+teleportBtn.Font = Enum.Font.GothamBold
+teleportBtn.TextSize = 15
+teleportBtn.Parent = frame
+
+local antiAFKBtn = Instance.new("TextButton")
+antiAFKBtn.Text = "🛡 Anti-AFK: OFF"
+antiAFKBtn.Size = UDim2.new(0.8, 0, 0, 35)
+antiAFKBtn.Position = UDim2.new(0.1, 0, 0.68, 0)
+antiAFKBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+antiAFKBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+antiAFKBtn.Font = Enum.Font.GothamBold
+antiAFKBtn.TextSize = 15
+antiAFKBtn.Parent = frame
+
+local statusLbl = Instance.new("TextLabel")
+statusLbl.Text = "Status: ❌ Stopped"
+statusLbl.Size = UDim2.new(1, 0, 0, 30)
+statusLbl.Position = UDim2.new(0, 0, 0.87, 0)
+statusLbl.BackgroundTransparency = 1
+statusLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusLbl.Font = Enum.Font.Gotham
+statusLbl.TextSize = 14
+statusLbl.Parent = frame
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Text = "X"
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 0)
+closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeBtn.TextColor3 = Color3.new(1, 1, 1)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 14
+closeBtn.Parent = frame
+
+--=== LOGIC ===--
+local running = false
+local antiAFK = false
+
+-- Fungsi Anti-AFK (rotasi kamera kecil setiap 60 detik)
+task.spawn(function()
+	while task.wait(60) do
+		if antiAFK and workspace.CurrentCamera then
+			local cam = workspace.CurrentCamera
+			local original = cam.CFrame
+			cam.CFrame = original * CFrame.Angles(0, math.rad(5), 0)
+			task.wait(1)
+			cam.CFrame = original
+		end
+	end
+end)
+
+-- Fungsi auto cast + tangkap ikan
+local function castAndCatch()
+	while running do
+		-- Lempar kail (klik kiri)
+		vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+		task.wait(2)
+		vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+
+		-- Tunggu ikan
+		task.wait(8)
+
+		-- Tangkap ikan (MiniGame)
+		local args = { "complete" }
+		local success, err = pcall(function()
+			game:GetService("Players").LocalPlayer.Character
+				:WaitForChild("Pancing Emas")
+				:WaitForChild("Mechanics")
+				:WaitForChild("Remotes")
+				:WaitForChild("MiniGame")
+				:FireServer(unpack(args))
+		end)
+		if not success then
+			warn("Gagal menangkap ikan:", err)
+		end
+
+		-- Re-equip pancing
+		task.wait(0.5)
+		local backpack = player:WaitForChild("Backpack")
+		local rod = backpack:FindFirstChild("Pancing Emas")
+		if rod then
+			player.Character.Humanoid:EquipTool(rod)
+		end
+
+		task.wait(1)
+	end
+end
+
+--=== BUTTON EVENTS ===--
+startBtn.MouseButton1Click:Connect(function()
+	if not running then
+		running = true
+		statusLbl.Text = "Status: ✅ Running"
+		task.spawn(castAndCatch)
+	end
+end)
+
+stopBtn.MouseButton1Click:Connect(function()
+	running = false
+	statusLbl.Text = "Status: ❌ Stopped"
+end)
+
+gachaBtn.MouseButton1Click:Connect(function()
+	game:GetService("ReplicatedStorage"):WaitForChild("SpinRequest"):FireServer()
+end)
+
+teleportBtn.MouseButton1Click:Connect(function()
+	local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	if hrp then
+		-- TP SellFish Koordinat
+		hrp.CFrame = CFrame.new(77.030014, -11.8025093, 505.639679, -0.999435604, -2.99133838e-08, 0.0335931852,
+			-2.58129269e-08, 1, 1.22495905e-07,
+			-0.0335931852, 1.21559623e-07, -0.999435604)
+	end
+end)
+
+antiAFKBtn.MouseButton1Click:Connect(function()
+	antiAFK = not antiAFK
+	if antiAFK then
+		antiAFKBtn.Text = "🛡 Anti-AFK: ON"
+		antiAFKBtn.BackgroundColor3 = Color3.fromRGB(60, 180, 75)
+	else
+		antiAFKBtn.Text = "🛡 Anti-AFK: OFF"
+		antiAFKBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+	end
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+	running = false
+	antiAFK = false
+	gui:Destroy()
+end)
