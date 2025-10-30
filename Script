@@ -123,7 +123,7 @@ local function castAndCatch()
 	while running do
 		-- Lempar kail (klik kiri)
 		vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-		task.wait(1.5)
+		task.wait(2)
 		vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
 
 		-- Tunggu ikan
