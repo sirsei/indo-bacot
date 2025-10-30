@@ -105,17 +105,17 @@ closeBtn.Parent = frame
 local running = false
 local antiAFK = false
 
--- Fungsi Anti-AFK (rotasi kamera kecil setiap 60 detik)
+-- Initialize Anti-AFK (menggunakan VirtualUser untuk mensimulasikan aktivitas saat idle)
 task.spawn(function()
-	while task.wait(60) do
-		if antiAFK and workspace.CurrentCamera then
-			local cam = workspace.CurrentCamera
-			local original = cam.CFrame
-			cam.CFrame = original * CFrame.Angles(0, math.rad(5), 0)
-			task.wait(1)
-			cam.CFrame = original
-		end
-	end
+    local VU = game:GetService("VirtualUser")
+    antiAFKConnection = player.Idled:Connect(function()
+        if antiAFK then
+            VU:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+            wait(1)
+            VU:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+            print("[ANTI-AFK] Simulated activity sent.")
+        end
+    end)
 end)
 
 -- Fungsi auto cast + tangkap ikan
@@ -123,11 +123,11 @@ local function castAndCatch()
 	while running do
 		-- Lempar kail (klik kiri)
 		vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-		task.wait(2)
+		task.wait(1)
 		vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
 
 		-- Tunggu ikan
-		task.wait(8)
+		task.wait(7)
 
 		-- Tangkap ikan (MiniGame)
 		local args = { "complete" }
