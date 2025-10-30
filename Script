@@ -111,7 +111,7 @@ task.spawn(function()
     antiAFKConnection = player.Idled:Connect(function()
         if antiAFK then
             VU:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
-            wait(1.8)
+            wait(1)
             VU:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
             print("[ANTI-AFK] Simulated activity sent.")
         end
@@ -123,7 +123,7 @@ local function castAndCatch()
 	while running do
 		-- Lempar kail (klik kiri)
 		vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-		task.wait(1)
+		task.wait(1.8)
 		vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
 
 		-- Tunggu ikan
