@@ -111,7 +111,7 @@ task.spawn(function()
     antiAFKConnection = player.Idled:Connect(function()
         if antiAFK then
             VU:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
-            wait(1)
+            wait(1.8)
             VU:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
             print("[ANTI-AFK] Simulated activity sent.")
         end
